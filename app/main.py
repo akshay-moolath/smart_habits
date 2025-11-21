@@ -12,6 +12,8 @@ def on_startup():
 
 
 # include routers
+from .routes import moods
 from .routes import auth, habits
 app.include_router(auth.router)
 app.include_router(habits.router)
+app.include_router(moods.router)

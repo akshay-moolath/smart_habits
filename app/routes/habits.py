@@ -34,12 +34,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
             raise HTTPException(status_code=401, detail="User not found")
         return user
 
-ALLOWED_SORT_FIELDS = {"id", "name", "status", "category", "created_at", "updated_at"}
+ALLOWED_SORT_FIELDS = {"id", "name", "status", "category","created_at", "updated_at"}
 @router.get("/", response_model=List[Habit])
 def list_habits(
     status: Optional[str] = Query(None, description="Filter by status, e.g. active/completed"),
     category: Optional[str] = Query(None, description="Filter by category, e.g. health/work"),
-    search: Optional[str] = Query(None, description="Search in habit name"),
+    search: Optional[str] = Query(None, description="Search in habit name"), 
     sort: Optional[str] = Query("created_at", description="Sort field (id,name,status,category,created_at,updated_at)"),
     order: Optional[str] = Query("desc", description="'asc' or 'desc'"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),

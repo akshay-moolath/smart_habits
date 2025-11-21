@@ -24,3 +24,17 @@ class HabitCreate(BaseModel):
     name: str
     status: Optional[str] = "active"
     category: Optional[str] = None
+
+
+from datetime import datetime
+from typing import Optional
+from sqlmodel import SQLModel, Field
+
+class MoodEntry(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int
+    habit_id: Optional[int] = Field(default=None, foreign_key="habit.id")  # <-- new foreign key
+    text: str
+    sentiment: Optional[float] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
