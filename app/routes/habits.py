@@ -46,6 +46,7 @@ def create_habit(habit_in: HabitCreate, current_user: User = Depends(get_current
         name=habit_in.name,
         status=habit_in.status,
         owner_id=current_user.id,
+        category=habit_in.category,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
@@ -66,6 +67,8 @@ def update_habit(habit_id: int, habit_in: HabitCreate, current_user: User = Depe
             raise HTTPException(status_code=403, detail="Not authorized")
         habit.name = habit_in.name
         habit.status = habit_in.status
+        habit.category = habit_in.category
+        updated_at=datetime.utcnow()
         session.add(habit)
         session.commit()
         session.refresh(habit)

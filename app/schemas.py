@@ -13,3 +13,4 @@ class Token(BaseModel):
 class HabitCreate(BaseModel):
     name: str
     status: Optional[str] = "active"
+    category: Optional[str] = None

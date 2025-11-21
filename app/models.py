@@ -16,9 +16,11 @@ class Habit(SQLModel, table=True):
     name: str
     status: str = "active"
     owner_id: Optional[int] = None
+    category: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 class HabitCreate(BaseModel):
     name: str
     status: Optional[str] = "active"
+    category: Optional[str] = None
