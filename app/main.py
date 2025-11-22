@@ -5,6 +5,8 @@ from fastapi.responses import FileResponse
 import os
 from .routes import moods
 from .routes import auth, habits
+from sqlmodel import SQLModel
+from .db import engine
 
 
 app = FastAPI(title="Smart Habits")
@@ -25,5 +27,4 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/", include_in_schema=False)
 def root():
     return FileResponse(os.path.join("static", "login.html"))
-
 
