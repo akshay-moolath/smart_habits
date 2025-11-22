@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Habits — Demo UI</title>
+  <style>
+    body{font-family: Inter, system-ui, -apple-system, Arial; max-width:1000px;margin:20px auto;padding:0 16px;color:#0f172a}
+    header{display:flex;align-items:center;gap:16px}
+    img.hero{height:72px;border-radius:8px}
+    h1{margin:0;font-size:1.4rem}
+    .card{background:#fff;border-radius:8px;padding:12px;margin-top:12px;box-shadow:0 4px 18px rgba(2,6,23,0.06)}
+    label{display:block;margin-top:8px}
+    input,select,textarea,button{padding:8px;border-radius:6px;border:1px solid #e6edf3;width:100%}
+    .row{display:flex;gap:8px}
+    .row > *{flex:1}
+    .muted{color:#64748b;font-size:0.9rem}
+    ul.habits{list-style:none;padding:0;margin:0}
+    ul.habits li{padding:8px;border-bottom:1px solid #eef2f7}
+    .small{font-size:0.9rem}
+    .token{font-family:monospace;word-break:break-all}
+  </style>
+</head>
+<body>
+  <header>
+    <img class="hero" src="/static/images/header.png" alt="Smart Habits"/>
+    <div>
+      <h1>Smart Habits — Demo UI</h1>
+      <div class="muted">Simple frontend to test your FastAPI backend (auth, habits, moods)</div>
+    </div>
+  </header>
+
+  <section class="card" id="auth">
+    <h3>Login / Register</h3>
+    <div class="row">
+      <input id="username" placeholder="username" />
+      <input id="password" type="password" placeholder="password" />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="btn-register">Register</button>
+      <button id="btn-login">Login</button>
+    </div>
+    <div style="margin-top:8px">
+      <div class="muted">Token (stored in localStorage):</div>
+      <div id="token" class="token small"></div>
+    </div>
+  </section>
+
+  <section class="card" id="create-habit">
+    <h3>Create Habit</h3>
+    <label>Name</label>
+    <input id="habit-name" placeholder="e.g. Run 3km" />
+    <label>Category</label>
+    <input id="habit-category" placeholder="health, work, personal" />
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="btn-create-habit">Create</button>
+      <button id="btn-refresh">Refresh list</button>
+    </div>
+  </section>
+
+  <section class="card" id="habits-list">
+    <h3>Your Habits</h3>
+    <div class="muted small">Use the filter controls in the backend or the search box below (this demo fetches page 1, limit 50)</div>
+    <ul id="habits" class="habits"></ul>
+  </section>
+
+  <section class="card" id="create-mood">
+    <h3>Log Mood</h3>
+    <label>Attach to habit (optional) — habit id</label>
+    <input id="m-habit-id" placeholder="habit id (optional)" />
+    <label>Text</label>
+    <textarea id="m-text" rows="3" placeholder="How are you feeling?"></textarea>
+    <div style="margin-top:8px">
+      <button id="btn-create-mood">Save Mood</button>
+    </div>
+    <div class="muted small" style="margin-top:8px">Moods will show sentiment computed by the backend.</div>
+  </section>
+
+  <section class="card" id="moods-list">
+    <h3>Your Moods</h3>
+    <ul id="moods" class="habits"></ul>
+  </section>
+
+  <script>
+    const API_ROOT = '' // same origin; if backend runs on different host, set full URL
+
+    function authHeader(){
+      const t = localStorage.getItem('token')
+      return t ? { 'Authorization': 'Bearer '+t } : {}
+    }
+
+    function setToken(t){
+      if(t){localStorage.setItem('token', t); document.getElementById('token').innerText = t}
+      else{localStorage.removeItem('token'); document.getElementById('token').innerText = ''}
+    }
+
+    document.getElementById('btn-register').onclick = async ()=>{
+      const u = document.getElementById('username').value
+      const p = document.getElementById('password').value
+      if(!u||!p) return alert('enter username+password')
+      const res = await fetch(API_ROOT+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+      alert((await res.json()).detail || 'registered - try login')
+    }
+
+    document.getElementById('btn-login').onclick = async ()=>{
+      const u = document.getElementById('username').value
+      const p = document.getElementById('password').value
+      if(!u||!p) return alert('enter username+password')
+      const fd = new URLSearchParams(); fd.append('username',u); fd.append('password',p)
+      const res = await fetch(API_ROOT+'/auth/login',{method:'POST',body:fd})
+      if(!res.ok){ setToken(null); return alert('login failed') }
+      const j = await res.json(); setToken(j.access_token)
+    }
+
+    document.getElementById('btn-create-habit').onclick = async ()=>{
+      const name = document.getElementById('habit-name').value
+      const category = document.getElementById('habit-category').value
+      if(!name) return alert('name required')
+      const res = await fetch(API_ROOT+'/habits',{method:'POST',headers:{'Content-Type':'application/json',...authHeader()},body:JSON.stringify({name,category})})
+      if(!res.ok){ alert('create failed'); console.error(await res.text()); return }
+      await loadHabits()
+    }
+
+    document.getElementById('btn-refresh').onclick = loadHabits
+
+    async function loadHabits(){
+      const res = await fetch(API_ROOT+'/habits',{headers:{...authHeader()}})
+      if(res.status===401){ alert('authorize first'); return }
+      const list = await res.json()
+      const ul = document.getElementById('habits'); ul.innerHTML = ''
+      list.forEach(h=>{
+        const li = document.createElement('li')
+        li.innerHTML = `<strong>${h.name}</strong> <span class='muted'>[${h.category||'none'}] id:${h.id}</span><div class='small'>status: ${h.status} • created: ${new Date(h.created_at).toLocaleString()}</div>`
+        ul.appendChild(li)
+      })
+    }
+
+    document.getElementById('btn-create-mood').onclick = async ()=>{
+      const text = document.getElementById('m-text').value
+      const habit_id = document.getElementById('m-habit-id').value
+      if(!text) return alert('enter mood text')
+      const body = { text }
+      if(habit_id) body.habit_id = Number(habit_id)
+      const res = await fetch(API_ROOT+'/moods',{method:'POST',headers:{'Content-Type':'application/json',...authHeader()},body:JSON.stringify(body)})
+      if(!res.ok){ alert('save failed'); console.error(await res.text()); return }
+      await loadMoods()
+    }
+
+    async function loadMoods(){
+      const res = await fetch(API_ROOT+'/moods',{headers:{...authHeader()}})
+      if(res.status===401){ alert('authorize first'); return }
+      const list = await res.json()
+      const ul = document.getElementById('moods'); ul.innerHTML = ''
+      list.forEach(m=>{
+        const li = document.createElement('li')
+        li.innerHTML = `<strong>"${m.text}"</strong> <span class='muted'>[habit:${m.habit_id||'-'}] sentiment: ${m.sentiment}</span><div class='small'>${new Date(m.created_at).toLocaleString()}</div>`
+        ul.appendChild(li)
+      })
+    }
+
+    // initialize token & lists
+    setToken(localStorage.getItem('token'))
+    if(localStorage.getItem('token')){ loadHabits(); loadMoods() }
+  </script>
+</body>
+</html>
