@@ -17,6 +17,10 @@ class Habit(SQLModel, table=True):
     owner_habit_id: Optional[int] = Field(default=None, sa_column=Column("owner_habit_id", Integer, nullable=True))
     owner_id: Optional[int] = None
     name: str
+    
+    # 🌟 THIS IS THE NEW FIELD YOU NEED 🌟
+    category: str  # <--- Now the category must be provided when creating a Habit
+    
     status: str = "active"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
