@@ -9,6 +9,32 @@
     <!-- Load Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* Scrollable habit list container */
+        #habit-list {
+        max-height: 220px; /* change this value as needed */
+        overflow-y: auto;
+        padding-right: 0.5rem; /* prevents content from hiding under scrollbar */
+        }
+
+        /* Nice thin scrollbar for WebKit browsers */
+        #habit-list::-webkit-scrollbar {
+        width: 10px;
+        }
+        #habit-list::-webkit-scrollbar-track {
+        background: #f1f5f9; /* tailwind gray-100 */
+        border-radius: 999px;
+        }
+        #habit-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1; /* tailwind gray-300 */
+        border-radius: 999px;
+        border: 2px solid #f1f5f9;
+        }
+
+        /* Firefox */
+        #habit-list {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
