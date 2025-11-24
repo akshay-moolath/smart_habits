@@ -80,19 +80,15 @@ def list_habits(
 @router.post("/", response_model=Habit)
 def create_habit(habit: Habit, current_user: User = Depends(get_current_user)):
     with Session(engine) as session:
-        # compute next owner_habit_id
-        statement = select(func.coalesce(func.max(Habit.owner_habit_id), 0)).where(Habit.owner_id == current_user.id)
-        result = session.exec(statement).one()
-        next_owner_habit_id = int(result) + 1
-
         habit.owner_id = current_user.id
-        habit.owner_habit_id = next_owner_habit_id
-
         session.add(habit)
         session.commit()
         session.refresh(habit)
         return habit
 
+        
+
+        
 
 @router.put("/{habit_id}", response_model=Habit)
 def update_habit(habit_id: int, habit_in: HabitCreate, current_user: User = Depends(get_current_user)):
